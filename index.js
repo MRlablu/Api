@@ -5,8 +5,30 @@ const cors = require('cors')
 const mongoose = require('mongoose')
 mongoose.connect('mongodb+srv://admin:admin44@cluster0.8s2z6tc.mongodb.net/test')
 
+const db = mongoose.connection
+db.on('error',(err)=>{
+    console.log(err);
+})
 
+db.once('open',()=>{
+    console.log('Database connection Establish');
+})
 const contactRoute = require('./routes/contact')
+
+const Schema = mongoose.Schema
+const DemoSchema = new Schema({
+    name:{
+        type: String,
+        required : true,
+        minlength:3
+    },
+    phone:{
+        type: String,
+        require:true
+    }
+})
+
+const Demo = mongoose.model('Demo',DemoSchema)
 
 const app= express()
 app.use(morgan('dev'))
@@ -17,6 +39,26 @@ app.use(bodyparser.json())
 
 app.use('/api/contacts',contactRoute)
 
+app.get('/demo',(req,res)=>{
+    const demo = new Demo({
+        name:'Durjoy',
+        phone:'01792761075'
+    })
+    demo.save()
+    .then(data=>{
+        res.json({data})
+    })
+    .catch(err=>console.log(err))
+})
+
+app.get('/get',(req,res)=>{
+    Demo.find()
+    .then(data=>{
+        res.json(data)
+    })
+    .catch(err=> console.log(err))
+})
+
 app.get('/',(req,res)=>{
     res.send('This is frst Route')
 })
@@ -25,7 +67,7 @@ app.get('/api/contacts',(req,res)=>{
     res.json(contacts)
 })
 
-app.post('/api/contacts',(req,res)=>{
+app.post('/api/contacts/p',(req,res)=>{
     res.json({
         message:'I am post method'
     })
